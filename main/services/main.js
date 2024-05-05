@@ -21,24 +21,6 @@ express.post(
   }
 );
 
-express.get("/fortnite/api/v2/versioncheck/*", async (req, res) => {
-  res.json({
-    type: "NO_UPDATE",
-  });
-});
-
-express.get("/fortnite/api/v2/versioncheck*", async (req, res) => {
-  res.json({
-    type: "NO_UPDATE",
-  });
-});
-
-express.get("/fortnite/api/versioncheck*", async (req, res) => {
-  res.json({
-    type: "NO_UPDATE",
-  });
-});
-
 express.post("/api/v1/user/setting", async (req, res) => {
   res.json({});
 });

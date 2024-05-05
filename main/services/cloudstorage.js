@@ -69,7 +69,33 @@ express.use((req, res, next) => {
 });
 
 express.get("/fortnite/api/cloudstorage/user/:accountId", async (req, res) => {
-  res.json([]);
+  let clientSettingsPath = path.join(__dirname, "..", "..", "local", "ClientSettings", req.params.accountId);
+    if (!fs.existsSync(clientSettingsPath)) fs.mkdirSync(clientSettingsPath);
+
+    const ver = functions.getVersion(req);
+    
+    let file = path.join(clientSettingsPath, `ClientSettings-${ver.season}.Sav`);
+
+    if (fs.existsSync(file)) {
+        const ParsedFile = fs.readFileSync(file, 'latin1');
+        const ParsedStats = fs.statSync(file);
+
+        return res.json([{
+            "uniqueFilename": "ClientSettings.Sav",
+            "filename": "ClientSettings.Sav",
+            "hash": crypto.createHash('sha1').update(ParsedFile).digest('hex'),
+            "hash256": crypto.createHash('sha256').update(ParsedFile).digest('hex'),
+            "length": Buffer.byteLength(ParsedFile),
+            "contentType": "application/octet-stream",
+            "uploaded": ParsedStats.mtime,
+            "storageType": "S3",
+            "storageIds": {},
+            "accountId": req.params.accountId,
+            "doNotCache": false
+        }]);
+    }
+    
+    res.json([]);
 });
 
 express.put(
@@ -77,10 +103,18 @@ express.put(
   functions.getUser,
   async (req, res) => {
     if (req.params.file.includes("..")) return res.status(400).end();
-    if (Buffer.byteLength(req.rawBody) >= 400000)
-      return res
-        .status(403)
-        .json({ error: "File size must be less than 400kb." });
+    if (Buffer.byteLength(req.rawBody) >= 400000) return res.status(403).json({ "error": "File size must be less than 400kb." });
+
+
+    const MainClientSettingsPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "local",
+      "ClientSettings"
+    );
+    
+    if (!fs.existsSync(MainClientSettingsPath)) fs.mkdirSync(MainClientSettingsPath)
 
     let clientSettingsPath = path.join(
       __dirname,
